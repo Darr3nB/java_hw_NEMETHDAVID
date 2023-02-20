@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: '@name@'
+    version: '@version@'
+
+  main:
+    banner-mode: log
+
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+logging:
+  level:
+    com.ndvr: INFO

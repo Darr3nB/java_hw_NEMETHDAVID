@@ -1,0 +1,9 @@
+
+    _   ______ _    ______
+   / | / / __ \ |  / / __ \
+  /  |/ / / / / | / / /_/ /
+ / /|  / /_/ /| |/ / _, _/
+/_/ |_/_____/ |___/_/ |_|
+=========================
+ :: Spring Boot :: (v${spring-boot.version})
+ :: ${spring.application.name} :: (v${spring.application.version})
