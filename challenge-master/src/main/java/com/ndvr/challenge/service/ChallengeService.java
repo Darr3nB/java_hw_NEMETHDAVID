@@ -8,7 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import static java.time.LocalDate.now;
 
 @Service
 @Slf4j
@@ -21,11 +26,44 @@ public class ChallengeService {
         log.info("Fetching historical price data for {}", symbol);
         return dataProvider.fetchPriceData(symbol, fromDate, toDate);
     }
-    
+
     public List<BigDecimal> getProjectedAssetData(String symbol) {
         log.info("Generating projected price data for {}", symbol);
-        // TODO Implement getProjectedAssetData()
+        List<Pricing> pricingList = getHistoricalAssetData(symbol, now().minusYears(5), now());
+
+        Map<String, List<BigDecimal>> monthlyAverage = calculateMonthlyAverages(pricingList);
+
+        List<BigDecimal> result = getMonthlyChanges(monthlyAverage);
+
         return List.of();
     }
 
+    private Map<String, List<BigDecimal>> calculateMonthlyAverages(List<Pricing> pricingList){
+        Map<String, List<BigDecimal>> monthlyAverage = new LinkedHashMap<>();
+
+        for (Pricing item : pricingList) {
+            String monthYear = item.getTradeDate().toString().substring(0, 7);
+            List<BigDecimal> closePrice = monthlyAverage.getOrDefault(monthYear, new ArrayList<>());
+            closePrice.add(item.getClosePrice());
+            monthlyAverage.put(monthYear, closePrice);
+        }
+        return monthlyAverage;
+    }
+
+    private List<BigDecimal> getMonthlyChanges(Map<String, List<BigDecimal>> monthlyAverage){
+        List<BigDecimal> result = new ArrayList<>();
+
+        for (List<BigDecimal> closePrice : monthlyAverage.values()){
+            if (!closePrice.isEmpty()){
+                int numDays = closePrice.size();
+                double firstPrice = closePrice.get(0).doubleValue();
+                double lastPrice = closePrice.get(numDays - 1).doubleValue();
+                double resultForMonth = (lastPrice / firstPrice) - 1;
+
+                result.add(new BigDecimal(resultForMonth));
+            }
+        }
+
+        return result;
+    }
 }
