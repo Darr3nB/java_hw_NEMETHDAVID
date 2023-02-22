@@ -45,6 +45,9 @@ public class ChallengeService {
             }
         }
 
+        log.info("Lowest value: " + result.stream().sorted().findFirst());
+        log.info("Median value: " + result.stream().sorted().skip(result.size() / 2).findFirst());
+
         return result;
     }
 
