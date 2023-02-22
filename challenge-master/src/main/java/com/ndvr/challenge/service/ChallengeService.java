@@ -34,12 +34,13 @@ public class ChallengeService {
     public List<BigDecimal> getProjectedAssetData(String symbol) {
         log.info("Generating projected price data for {}", symbol);
         List<Pricing> pricingList = getHistoricalAssetData(symbol, now().minusYears(5), now());
+        BigDecimal currentValue = pricingList.get(pricingList.size() - 1).getClosePrice();
 
         Map<String, List<BigDecimal>> monthlyAverage = calculateMonthlyAverages(pricingList);
 
         List<BigDecimal> monthlyChanges = getMonthlyChanges(monthlyAverage);
 
-        scenario.scenario(monthlyChanges);
+        scenario.scenario(monthlyChanges, currentValue);
 
         return List.of();
     }
