@@ -30,7 +30,7 @@ public class ChallengeService {
         List<Pricing> pricingList = getHistoricalAssetData(symbol, now().minusYears(5), now());
         BigDecimal currentValue = pricingList.get(pricingList.size() - 1).getClosePrice();
 
-        Map<String, List<BigDecimal>> monthlyPercentageDAta = getClosePricesByMonthAsPercentage(pricingList);
+        Map<String, List<BigDecimal>> monthlyPercentageDAta = getClosePricesByMonth(pricingList);
 
         List<BigDecimal> monthlyChanges = getMonthlyChanges(monthlyPercentageDAta);
 
@@ -52,7 +52,7 @@ public class ChallengeService {
         return result;
     }
 
-    private Map<String, List<BigDecimal>> getClosePricesByMonthAsPercentage(List<Pricing> pricingList) {
+    private Map<String, List<BigDecimal>> getClosePricesByMonth(List<Pricing> pricingList) {
         Map<String, List<BigDecimal>> monthlyAverage = new LinkedHashMap<>();
 
         for (Pricing item : pricingList) {
