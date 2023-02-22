@@ -2,18 +2,13 @@ package com.ndvr.challenge.service;
 
 import com.ndvr.challenge.dataprovider.YahooFinanceClient;
 import com.ndvr.challenge.model.Pricing;
-import com.ndvr.challenge.utility.Scenario;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.time.LocalDate.now;
 
@@ -23,8 +18,6 @@ import static java.time.LocalDate.now;
 public class ChallengeService {
 
     private final YahooFinanceClient dataProvider;
-    @Autowired
-    Scenario scenario;
 
     public List<Pricing> getHistoricalAssetData(String symbol, LocalDate fromDate, LocalDate toDate) {
         log.info("Fetching historical price data for {}", symbol);
@@ -40,12 +33,22 @@ public class ChallengeService {
 
         List<BigDecimal> monthlyChanges = getMonthlyChanges(monthlyAverage);
 
-        scenario.scenario(monthlyChanges, currentValue);
+        List<BigDecimal> result = new ArrayList<BigDecimal>();
 
-        return List.of();
+        for (int i = 0; i < 1000; i++) {
+            List<BigDecimal> currentScenario = scenario(monthlyChanges, currentValue);
+            if (i == 0) {
+                result = currentScenario;
+            }
+            if (currentScenario.get(currentScenario.size() - 1).compareTo(result.get(result.size() - 1)) > 0) {
+                result = currentScenario;
+            }
+        }
+
+        return result;
     }
 
-    private Map<String, List<BigDecimal>> calculateMonthlyAverages(List<Pricing> pricingList){
+    private Map<String, List<BigDecimal>> calculateMonthlyAverages(List<Pricing> pricingList) {
         Map<String, List<BigDecimal>> monthlyAverage = new LinkedHashMap<>();
 
         for (Pricing item : pricingList) {
@@ -57,11 +60,11 @@ public class ChallengeService {
         return monthlyAverage;
     }
 
-    private List<BigDecimal> getMonthlyChanges(Map<String, List<BigDecimal>> monthlyAverage){
+    private List<BigDecimal> getMonthlyChanges(Map<String, List<BigDecimal>> monthlyAverage) {
         List<BigDecimal> monthlyChanges = new ArrayList<>();
 
-        for (List<BigDecimal> closePrice : monthlyAverage.values()){
-            if (!closePrice.isEmpty()){
+        for (List<BigDecimal> closePrice : monthlyAverage.values()) {
+            if (!closePrice.isEmpty()) {
                 int numDays = closePrice.size();
                 double firstPrice = closePrice.get(0).doubleValue();
                 double lastPrice = closePrice.get(numDays - 1).doubleValue();
@@ -72,5 +75,28 @@ public class ChallengeService {
         }
 
         return monthlyChanges;
+    }
+
+    private List<BigDecimal> scenario(List<BigDecimal> monthlyChanges, BigDecimal currentValue) {
+        return scenario(monthlyChanges, currentValue, 240);
+    }
+
+    private List<BigDecimal> scenario(List<BigDecimal> monthlyChanges, BigDecimal currentValue, int monthsToCalculate) {
+        LocalDate dateTillCalculate = LocalDate.now().plusMonths(monthsToCalculate);
+
+        List<BigDecimal> closePrices = new ArrayList<BigDecimal>();
+
+        for (LocalDate date = LocalDate.now(); date.isBefore(dateTillCalculate); date = date.plusDays(1)) {
+            closePrices.add(getRandomValue(monthlyChanges).add(new BigDecimal(1)).multiply(currentValue));
+        }
+
+        return closePrices;
+    }
+
+    private BigDecimal getRandomValue(List<BigDecimal> monthlyChanges) {
+        Random rand = new Random();
+        int randomIndex = rand.nextInt(monthlyChanges.size());
+
+        return monthlyChanges.get(randomIndex);
     }
 }
