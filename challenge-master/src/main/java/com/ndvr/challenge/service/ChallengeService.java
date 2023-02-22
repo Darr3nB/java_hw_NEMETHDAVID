@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -29,7 +30,7 @@ public class ChallengeService {
         List<Pricing> pricingList = getHistoricalAssetData(symbol, now().minusYears(5), now());
         BigDecimal currentValue = pricingList.get(pricingList.size() - 1).getClosePrice();
 
-        Map<String, List<BigDecimal>> monthlyAverage = calculateMonthlyAverages(pricingList);
+        Map<String, List<BigDecimal>> monthlyAverage = getClosePricesByMonthAsPercentage(pricingList);
 
         List<BigDecimal> monthlyChanges = getMonthlyChanges(monthlyAverage);
 
@@ -51,7 +52,7 @@ public class ChallengeService {
         return result;
     }
 
-    private Map<String, List<BigDecimal>> calculateMonthlyAverages(List<Pricing> pricingList) {
+    private Map<String, List<BigDecimal>> getClosePricesByMonthAsPercentage(List<Pricing> pricingList) {
         Map<String, List<BigDecimal>> monthlyAverage = new LinkedHashMap<>();
 
         for (Pricing item : pricingList) {
@@ -69,11 +70,11 @@ public class ChallengeService {
         for (List<BigDecimal> closePrice : monthlyAverage.values()) {
             if (!closePrice.isEmpty()) {
                 int numDays = closePrice.size();
-                double firstPrice = closePrice.get(0).doubleValue();
-                double lastPrice = closePrice.get(numDays - 1).doubleValue();
-                double resultForMonth = (lastPrice / firstPrice) - 1;
+                BigDecimal firstPrice = closePrice.get(0);
+                BigDecimal lastPrice = closePrice.get(numDays - 1);
+                BigDecimal resultForMonth = lastPrice.divide(firstPrice, RoundingMode.HALF_UP).subtract(BigDecimal.ONE);
 
-                monthlyChanges.add(new BigDecimal(resultForMonth));
+                monthlyChanges.add(resultForMonth);
             }
         }
 
