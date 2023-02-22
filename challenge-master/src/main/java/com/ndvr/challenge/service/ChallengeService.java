@@ -2,8 +2,10 @@ package com.ndvr.challenge.service;
 
 import com.ndvr.challenge.dataprovider.YahooFinanceClient;
 import com.ndvr.challenge.model.Pricing;
+import com.ndvr.challenge.utility.Scenario;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,6 +23,8 @@ import static java.time.LocalDate.now;
 public class ChallengeService {
 
     private final YahooFinanceClient dataProvider;
+    @Autowired
+    Scenario scenario;
 
     public List<Pricing> getHistoricalAssetData(String symbol, LocalDate fromDate, LocalDate toDate) {
         log.info("Fetching historical price data for {}", symbol);
@@ -33,7 +37,9 @@ public class ChallengeService {
 
         Map<String, List<BigDecimal>> monthlyAverage = calculateMonthlyAverages(pricingList);
 
-        List<BigDecimal> result = getMonthlyChanges(monthlyAverage);
+        List<BigDecimal> monthlyChanges = getMonthlyChanges(monthlyAverage);
+
+        scenario.scenario(monthlyChanges);
 
         return List.of();
     }
@@ -51,7 +57,7 @@ public class ChallengeService {
     }
 
     private List<BigDecimal> getMonthlyChanges(Map<String, List<BigDecimal>> monthlyAverage){
-        List<BigDecimal> result = new ArrayList<>();
+        List<BigDecimal> monthlyChanges = new ArrayList<>();
 
         for (List<BigDecimal> closePrice : monthlyAverage.values()){
             if (!closePrice.isEmpty()){
@@ -60,10 +66,10 @@ public class ChallengeService {
                 double lastPrice = closePrice.get(numDays - 1).doubleValue();
                 double resultForMonth = (lastPrice / firstPrice) - 1;
 
-                result.add(new BigDecimal(resultForMonth));
+                monthlyChanges.add(new BigDecimal(resultForMonth));
             }
         }
 
-        return result;
+        return monthlyChanges;
     }
 }
