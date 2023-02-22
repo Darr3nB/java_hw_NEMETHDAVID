@@ -24,7 +24,7 @@ public class ChallengeService {
         return dataProvider.fetchPriceData(symbol, fromDate, toDate);
     }
 
-    public List<BigDecimal> getProjectedAssetData(String symbol) {
+    public List<BigDecimal> getProjectedAssetData(String symbol, Integer months) {
         log.info("Generating projected price data for {}", symbol);
         List<Pricing> pricingList = getHistoricalAssetData(symbol, now().minusYears(5), now());
         BigDecimal currentValue = pricingList.get(pricingList.size() - 1).getClosePrice();
@@ -36,7 +36,7 @@ public class ChallengeService {
         List<BigDecimal> result = new ArrayList<BigDecimal>();
 
         for (int i = 0; i < 1000; i++) {
-            List<BigDecimal> currentScenario = scenario(monthlyChanges, currentValue);
+            List<BigDecimal> currentScenario = scenario(monthlyChanges, currentValue, months);
             if (i == 0) {
                 result = currentScenario;
             }
@@ -78,10 +78,6 @@ public class ChallengeService {
         }
 
         return monthlyChanges;
-    }
-
-    private List<BigDecimal> scenario(List<BigDecimal> monthlyChanges, BigDecimal currentValue) {
-        return scenario(monthlyChanges, currentValue, 240);
     }
 
     private List<BigDecimal> scenario(List<BigDecimal> monthlyChanges, BigDecimal currentValue, int monthsToCalculate) {
