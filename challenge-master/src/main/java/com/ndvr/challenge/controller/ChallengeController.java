@@ -43,10 +43,10 @@ public class ChallengeController {
     @GetMapping("/{symbol}/projected")
     public List<BigDecimal> getProjectedAssetData(@Parameter(description = "Stock symbol e.g.: TSLA")
                                                   @PathVariable String symbol,
-                                                  @RequestParam(value = "months", required = false) Integer months) {
-        months = months == null || months <= 0 ? 240 : months;
+                                                  @RequestParam(value = "numberOfMonths", required = false) Integer numberOfMonths) {
+        numberOfMonths = numberOfMonths == null || numberOfMonths <= 0 ? 240 : numberOfMonths;
 
-        return challengeService.getProjectedAssetData(symbol, months);
+        return challengeService.getProjectedAssetData(symbol, numberOfMonths);
     }
 
 }
